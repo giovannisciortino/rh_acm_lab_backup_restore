@@ -1,0 +1,13 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: hello-world-placement
+  namespace: default
+placementRef:
+  apiGroup: cluster.open-cluster-management.io
+  kind: Placement
+  name: hello-world-placement
+subjects:
+- apiGroup: policy.open-cluster-management.io
+  kind: Policy
+  name: hello-world

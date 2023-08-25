@@ -1,0 +1,4 @@
+kubernetes
+openshift
+ansible
+boto3

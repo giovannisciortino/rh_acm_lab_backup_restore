@@ -1,0 +1,86 @@
+- name: Verify ACM Hub cluster connection
+  kubernetes.core.k8s_cluster_info:
+    host: "{{hub_host}}"
+    api_key: "{{hub_api_key}}"
+    validate_certs: "{{hub_validate_certs}}"
+    invalidate_cache: False
+  register: api_status
+
+- name: Verify managed cluster connection
+  kubernetes.core.k8s_cluster_info:
+    host: "{{managed_cluster_host}}"
+    api_key: "{{managed_cluster_api_key}}"
+    validate_certs: "{{managed_cluster_validate_certs}}"
+    invalidate_cache: False
+  register: api_status
+
+- name: Inject Managed Cluster CR {{ managed_cluster_name }}
+  kubernetes.core.k8s:
+    host: "{{hub_host}}"
+    api_key: "{{hub_api_key}}"
+    validate_certs: "{{hub_validate_certs}}"
+    state: present
+    template:
+      - path: 'managedcluster.yml'
+  retries: 100
+  delay: 5
+  register: result
+  until: result is success
+
+
+- name: collect secret from {{ managed_cluster_name }}
+  kubernetes.core.k8s:
+    host: "{{hub_host}}"
+    api_key: "{{hub_api_key}}"
+    validate_certs: "{{hub_validate_certs}}"
+    api_version: v1
+    kind: Secret
+    name: "{{ managed_cluster_name }}-import"
+    namespace: "{{ managed_cluster_name }}"
+  register: import_secret
+
+- name: Create crds import
+  ansible.builtin.tempfile:
+    state: file
+    suffix: crd_import
+  register: crd_import_tmp
+
+- copy:
+    content: "{{  import_secret | json_query('result.data') | json_query('\"crds.yaml\"') | b64decode }}"
+    dest: "{{ crd_import_tmp.path }}"
+
+- name: Create import resources
+  ansible.builtin.tempfile:
+    state: file
+    suffix: import_import
+  register: import_import_tmp
+
+- copy:
+    content: "{{ import_secret | json_query('result.data') | json_query('\"import.yaml\"') | b64decode }}"
+    dest: "{{ import_import_tmp.path }}"
+
+- name: Inject import CRDs into {{ managed_cluster_name }}
+  kubernetes.core.k8s:
+    host: "{{managed_cluster_host}}"
+    api_key: "{{managed_cluster_api_key}}"
+    validate_certs: "{{managed_cluster_validate_certs}}"
+    state: present
+    template:
+      - path: "{{ crd_import_tmp.path }}"
+  retries: 100
+  delay: 5
+  register: result
+  until: result is success
+
+- name: Inject import command into {{ managed_cluster_name }}
+  kubernetes.core.k8s:
+    host: "{{managed_cluster_host}}"
+    api_key: "{{managed_cluster_api_key}}"
+    validate_certs: "{{managed_cluster_validate_certs}}"
+    state: present
+    template:
+      - path: "{{ import_import_tmp.path }}"
+  retries: 100
+  delay: 5
+  register: result
+  until: result is success

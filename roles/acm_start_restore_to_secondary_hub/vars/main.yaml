@@ -1,0 +1,3 @@
+velero_schedule: "0 */2 * * *"
+velero_ttl: "120h"
+managed_service_account_ttl: "240h"

@@ -1,0 +1,42 @@
+- name: Verify that the cluster API are reachable and the credential are correct
+  kubernetes.core.k8s_cluster_info:
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+  register: api_status
+
+- name: Create Red Hat ACM Namespace
+  kubernetes.core.k8s:
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+    state: present
+    src: files/01_Namespace_open-cluster-management.yaml
+
+- name: Create Red Hat ACM OperatorGroup
+  kubernetes.core.k8s:
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+    state: present
+    src: files/02_OperatorGroup_open-cluster-management.yaml
+
+- name: Create Red Hat ACM Subscription
+  kubernetes.core.k8s:
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+    state: present
+    src: files/03_Subscription_advanced-cluster-management.yaml
+
+- name: Create Red Hat ACM MultiClusterHub - Retry until ACM Operator is installed and kind MultiClusterHub is available
+  kubernetes.core.k8s:
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+    state: present
+    template: templates/04_MultiClusterHub_multiclusterhub.yaml
+  retries: 100
+  delay: 5
+  register: result
+  until: result is success

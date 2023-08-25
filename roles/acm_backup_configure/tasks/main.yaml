@@ -1,0 +1,97 @@
+- name: Verify that the cluster API are reachable and the credential are correct
+  kubernetes.core.k8s_cluster_info:
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+  register: api_status
+
+- name: Create S3 Bucket
+  amazon.aws.s3_bucket:
+    name: "{{aws_bucket_name}}"
+    state: present
+    region: "{{aws_bucket_region}}"
+    aws_access_key: "{{aws_access_key}}"
+    aws_secret_key: "{{aws_secret_key}}"
+
+- name: create s3 cloud credential secret
+  kubernetes.core.k8s:
+    state: present
+    definition: 
+      apiVersion: v1
+      kind: Secret
+      type: Opaque             
+      metadata:
+        name: "cloud-credentials"
+        namespace: open-cluster-management-backup
+      data:
+         cloud: "{{ lookup('template', './05_Secret_cloud-credentials.yaml' ) | b64encode }}"
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+  retries: 100
+  delay: 5
+  register: result
+  until: result is success
+
+
+- name: create ACM DataProtectionApplication resource
+  kubernetes.core.k8s:
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+    state: present
+    template: templates/06_DataProtectionApplication_dpa-acm.yaml
+  retries: 100
+  delay: 5
+  register: result
+  until: result is success
+
+- name: create ACM BackupSchedule resource
+  kubernetes.core.k8s:
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+    state: present
+    template: templates/07_BackupSchedule_schedule-acm.yaml
+  retries: 100
+  delay: 5
+  register: result
+  until: result is success
+
+- name: Wait BackupSchedule is configured
+  kubernetes.core.k8s:
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+    definition:
+      apiVersion: cluster.open-cluster-management.io/v1beta1
+      kind: BackupSchedule
+      metadata:
+        name: schedule-acm
+        namespace: open-cluster-management-backup
+    wait: yes
+    wait_condition:
+      status: True 
+        
+
+- name: Wait that at least 5 Backup resource are created in open-cluster-management-backup namespace
+  kubernetes.core.k8s_info:
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+    api_version: v1
+    kind: Backup
+    namespace: open-cluster-management-backup
+  retries: 100
+  delay: 5
+  register: backup_resources_list
+  until: backup_resources_list.resources | length >= 5
+
+- name: Pause for 10 minutes to wait that the first backup is completed before to continue
+  ansible.builtin.pause:
+    minutes: 10
+
+
+
+
+

@@ -1,0 +1,55 @@
+- name: Verify that the cluster API are reachable and the credential are correct
+  kubernetes.core.k8s_cluster_info:
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+  register: api_status
+
+- name: create ACM Policy resource
+  kubernetes.core.k8s:
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+    state: present
+    template: templates/09_Policy_hello-world.yml
+  retries: 100
+  delay: 5
+  register: result
+  until: result is success
+
+- name: create ACM ManagedClusterSetBinding resource
+  kubernetes.core.k8s:
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+    state: present
+    template: 10_ManagedClusterSetBinding_global.yml
+  retries: 100
+  delay: 5
+  register: result
+  until: result is success
+
+
+- name: create ACM Placement resource
+  kubernetes.core.k8s:
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+    state: present
+    template: templates/11_Placement_hello-world-placement.yml
+  retries: 100
+  delay: 5
+  register: result
+  until: result is success
+
+- name: create ACM PlacementBinding resource
+  kubernetes.core.k8s:
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+    state: present
+    template: templates/12_PlacementBinding_hello-world-placement.yml
+  retries: 100
+  delay: 5
+  register: result
+  until: result is success

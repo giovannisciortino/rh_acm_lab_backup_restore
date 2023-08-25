@@ -1,0 +1,34 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  annotations:
+    policy.open-cluster-management.io/categories: ""
+    policy.open-cluster-management.io/controls: ""
+    policy.open-cluster-management.io/standards: ""
+  generation: 1
+  name: hello-world
+  namespace: default
+spec:
+  disabled: false
+  policy-templates:
+  - objectDefinition:
+      apiVersion: policy.open-cluster-management.io/v1
+      kind: ConfigurationPolicy
+      metadata:
+        name: policy-namespace
+      spec:
+        namespaceSelector:
+          exclude:
+          - kube-*
+          include:
+          - default
+        object-templates:
+        - complianceType: musthave
+          objectDefinition:
+            apiVersion: v1
+            kind: Namespace
+            metadata:
+              name: hello-world
+        remediationAction: inform
+        severity: low
+  remediationAction: enforce

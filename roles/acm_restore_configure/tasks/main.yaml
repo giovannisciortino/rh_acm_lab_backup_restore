@@ -1,0 +1,40 @@
+- name: Verify that the cluster API are reachable and the credential are correct
+  kubernetes.core.k8s_cluster_info:
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+  register: api_status
+
+- name: create s3 cloud credential secret
+  kubernetes.core.k8s:
+    state: present
+    definition: 
+      apiVersion: v1
+      kind: Secret
+      type: Opaque             
+      metadata:
+        name: "cloud-credentials"
+        namespace: open-cluster-management-backup
+      data:
+         cloud: "{{ lookup('template', './05_Secret_cloud-credentials.yaml' ) | b64encode }}"
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+  retries: 100
+  delay: 5
+  register: result
+  until: result is success
+
+- name: create ACM DataProtectionApplication resource
+  kubernetes.core.k8s:
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+    state: present
+    template: templates/06_DataProtectionApplication_dpa-acm.yaml
+  retries: 100
+  delay: 5
+  register: result
+  until: result is success
+
+
