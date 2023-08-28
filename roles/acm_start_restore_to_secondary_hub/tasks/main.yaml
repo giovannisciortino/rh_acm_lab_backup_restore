@@ -164,11 +164,6 @@
   register: backup_resources_list
   until: backup_resources_list.resources | length >= 5
 
-- name: Pause for 10 minutes to wait that the first backup is completed before to continue
-  ansible.builtin.pause:
-    minutes: 10
-
-
 
 
 
