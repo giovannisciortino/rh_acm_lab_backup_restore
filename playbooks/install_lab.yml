@@ -32,6 +32,7 @@
        managed_cluster_host: "{{managed_cluster_ocp_host}}"
        managed_cluster_api_key: "{{managed_cluster_ocp_api_key}}"
        managed_cluster_validate_certs: "{{managed_cluster_ocp_validate_certs}}"
+       managed_cluster_name: "{{managed_cluster_name}}"
 
    - name: Deploy a simple helloworld policy on on primary RH ACM Hub
      include_role:
@@ -40,6 +41,7 @@
        host: "{{primary_hub_ocp_host}}"
        api_key: "{{primary_hub_ocp_api_key}}"
        validate_certs: "{{primary_hub_ocp_validate_certs}}"
+       managed_cluster_name: "{{managed_cluster_name}}"
 
 
    - name: Configure backup on S3 on primary RH ACM Hub

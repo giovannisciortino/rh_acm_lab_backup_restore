@@ -13,4 +13,4 @@ spec:
         - key: name
           operator: In
           values:
-          - managed-cluster
+          - "{{ managed_cluster_name }}"
