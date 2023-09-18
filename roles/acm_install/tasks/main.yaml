@@ -5,6 +5,31 @@
     validate_certs: "{{validate_certs}}"
   register: api_status
 
+- name: Get a list of all worker node
+  kubernetes.core.k8s_info:
+    label_selectors: node-role.kubernetes.io/worker=
+    kind: node
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+  register: worker_nodes_list
+
+- name: Add label ode-role.kubernetes.io/rhacm and node-role.kubernetes.io/obser to worker nodes
+  kubernetes.core.k8s:
+    state: patched
+    kind: Node
+    name: "{{item}}"
+    definition:
+      metadata:
+        labels:
+          node-role.kubernetes.io/rhacm: ""
+          node-role.kubernetes.io/obser: ""
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+  loop: "{{worker_nodes_list.resources | map(attribute='metadata') | map(attribute='name') }}"
+
+
 - name: Create Red Hat ACM Namespace
   kubernetes.core.k8s:
     host: "{{host}}"
@@ -40,3 +65,61 @@
   delay: 5
   register: result
   until: result is success
+
+- name: Create Red Hat ACM MultiClusterObservability Namespace
+  kubernetes.core.k8s:
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+    state: present
+    src: files/Namespace_open-cluster-management-observability.yaml
+  when: install_observability is defined and install_observability == True
+
+- name: Create Red Hat ACM MultiClusterObservability thanos secret resource
+  kubernetes.core.k8s:
+    state: present
+    definition: 
+      apiVersion: v1
+      kind: Secret
+      type: Opaque             
+      metadata:
+        name: thanos-object-storage
+        namespace: open-cluster-management-observability
+      data:
+         thanos.yaml: "{{ lookup('template', 'Secret_thanos-object-storage.yaml' ) | b64encode }}"
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+  when: install_observability is defined and install_observability == True
+
+- name: Create Red Hat ACM MultiClusterObservability multiclusterhub-operator-pull-secret secret resource
+  kubernetes.core.k8s:
+    state: present
+    definition: 
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: multiclusterhub-operator-pull-secret
+        namespace: open-cluster-management-observability
+      type: kubernetes.io/dockerconfigjson
+      data:
+        .dockerconfigjson: "{{query('kubernetes.core.k8s',host=host,api_key=api_key,validate_certs=validate_certs, kind='Secret', namespace='openshift-config', resource_name='pull-secret')[0]['data']['.dockerconfigjson']}}"
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+  when: install_observability is defined and install_observability == True
+
+- name: Create Red Hat ACM MultiClusterObservability resource
+  kubernetes.core.k8s:
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+    state: present
+    template: templates/MultiClusterObservability_mco.yaml
+  retries: 100
+  delay: 5
+  register: result
+  until: result is success  
+  when: install_observability is defined and install_observability == True
+
+

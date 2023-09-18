@@ -1,0 +1,41 @@
+primary_hub_ocp_host: https://OCP_CLUSTER1:6443
+primary_hub_ocp_api_key: 'sha256~' 
+primary_hub_ocp_validate_certs: False
+
+secondary_hub_ocp_host:  https://OCP_CLUSTER2:6443/
+secondary_hub_ocp_api_key: 'sha256~'
+secondary_hub_ocp_validate_certs: False
+
+acm_velero_bucket_name: openenv-velero
+acm_velero_service_account_credential: |
+  {
+  }
+
+acm_velero_bucket_prefix: "rhacm_bck"  
+
+# Every day at 2AM
+velero_schedule: "0 2 * * *"
+
+# velero_ttl = backup retention
+# Maximum value of velero_ttl 720h (source: https://access.redhat.com/documentation/it-it/red_hat_advanced_cluster_management_for_kubernetes/2.8/html-single/business_continuity/index#using-backup-restore)
+velero_ttl: "168h"
+
+# 120 retries * 30 seconds = 1 hour
+wait_first_backup_retries: 120
+wait_first_backup_delay: 30
+
+# VARIABLE NEEDED ONLY FOR ACM INSTALLATION
+
+import_test_managed_cluster: True
+managed_cluster_name: managed-cluster
+managed_cluster_ocp_host: https://OCP_CLUSTER3:6443
+managed_cluster_ocp_api_key: 'sha256~'
+managed_cluster_ocp_validate_certs: False
+
+
+acm_observability_bucket_name: openenv-observability
+acm_observability_service_account_credential: |
+  {
+  }
+
+

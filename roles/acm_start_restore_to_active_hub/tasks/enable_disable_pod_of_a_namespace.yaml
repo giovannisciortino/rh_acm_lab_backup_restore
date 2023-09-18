@@ -1,0 +1,74 @@
+- name: "Check if node-selector label is present"
+  set_fact:
+    node_selector_is_present: "{{ query('kubernetes.core.k8s', host=ocp_host, api_key=ocp_api_key, validate_certs=ocp_validate_certs, kind='Namespace', resource_name=namespace) | json_query('[0].metadata.annotations.\"openshift.io/node-selector\"') == 'disabled_after_restore_on_another_cluster=true'  }}"
+
+- name: "Add node selector to {{namespace}} namespace"
+  kubernetes.core.k8s:
+    host: "{{ocp_host}}"
+    api_key: "{{ocp_api_key}}"
+    validate_certs: "{{ocp_validate_certs}}"
+    kind: Namespace
+    state: present
+    name: "{{namespace}}"
+    definition: |
+      metadata:
+        annotations:
+           openshift.io/node-selector: "disabled_after_restore_on_another_cluster=true"
+  when: state == "disabled" and not node_selector_is_present 
+  register: added_node_selector
+
+- name: "Remove node selector to {{namespace}} namespace"
+  kubernetes.core.k8s:
+    host: "{{ocp_host}}"
+    api_key: "{{ocp_api_key}}"
+    validate_certs: "{{ocp_validate_certs}}"
+    kind: Namespace
+    state: present
+    name: "{{namespace}}"
+    definition: |
+      metadata:
+        annotations:
+           openshift.io/node-selector: NULL
+  when: state == "enabled" and node_selector_is_present
+  register: removed_node_selector
+
+- name: "Delete all pod of namespaces {{namespace}}"
+  when: (added_node_selector.changed is defined and added_node_selector.changed ) or (removed_node_selector.changed is defined and removed_node_selector.changed )
+  block: 
+  - name: "Fetch all pod of namespace {{namespace}}"
+    k8s_info:
+      host: "{{ocp_host}}"
+      api_key: "{{ocp_api_key}}"
+      validate_certs: "{{ocp_validate_certs}}"
+      kind: Pod
+      namespace: "{{namespace}}"
+    register: pod_list
+  
+  - name: "Define list of the pod of namespace {{namespace}}"
+    set_fact: 
+      pod_name_list: "{{pod_list.resources | map(attribute='metadata') | map(attribute='name') }}"
+  
+  - name: "Delete pod of the namespace {{namespace}}"
+    k8s:
+      host: "{{ocp_host}}"
+      api_key: "{{ocp_api_key}}"
+      validate_certs: "{{ocp_validate_certs}}"
+      kind: Pod
+      name: "{{item}}"
+      namespace: "{{namespace}}"
+      state: absent
+    loop: "{{ pod_name_list }}"
+    async: 600
+    poll: 0
+    register: _delete_pod_task
+  
+  - name: "Wait for pod deletion of the namespace {{namespace}}"
+    async_status:
+      jid: "{{ item.ansible_job_id }}"
+    register: _jobs
+    until: _jobs.finished
+    delay: 5  # Check every 5 seconds.
+    retries: 120  # Retry up to 120 times.
+    with_items: "{{ _delete_pod_task.results }}"  
+   
+   

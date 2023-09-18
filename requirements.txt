@@ -2,3 +2,5 @@ kubernetes
 openshift
 ansible
 boto3
+gcloud
+gsutil

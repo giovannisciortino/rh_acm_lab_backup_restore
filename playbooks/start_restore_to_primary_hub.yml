@@ -1,0 +1,13 @@
+- hosts: localhost
+  gather_facts: off
+  tasks:
+    - name: Start rollback to primary RH ACM Hub
+      include_role:
+        name: acm_start_restore_to_active_hub
+      vars:
+        active_hub_ocp_host: "{{primary_hub_ocp_host}}"
+        active_hub_ocp_api_key: "{{primary_hub_ocp_api_key}}"
+        active_hub_ocp_validate_certs: "{{primary_hub_ocp_validate_certs}}"
+        passive_hub_ocp_host: "{{secondary_hub_ocp_host}}"
+        passive_hub_ocp_api_key: "{{secondary_hub_ocp_api_key}}"
+        passive_hub_ocp_validate_certs: "{{secondary_hub_ocp_validate_certs}}"

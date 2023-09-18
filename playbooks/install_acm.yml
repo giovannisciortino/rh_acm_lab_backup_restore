@@ -1,7 +1,7 @@
 - hosts: localhost
   gather_facts: off
   tasks:
-   - name: Install primary RH ACM on ARO
+   - name: Install primary RH ACM
      include_role:
        name: acm_install
      vars:
@@ -10,17 +10,7 @@
        validate_certs: "{{primary_hub_ocp_validate_certs}}"       
        certs: "{{primary_hub_ocp_validate_certs}}"
        mch_enable_cluster_backup: "true"
-       mch_enable_managedserviceaccount_preview: "true"
-
-   - name: Install secondary RH ACM on ROSA
-     include_role:
-       name: acm_install
-     vars:
-       host: "{{secondary_hub_ocp_host}}"
-       api_key: "{{secondary_hub_ocp_api_key}}"
-       validate_certs: "{{secondary_hub_ocp_validate_certs}}"
-       mch_enable_cluster_backup: "true"
-       mch_enable_managedserviceaccount_preview: "true"
+       install_observability: True
 
    - name: Import a managed cluster on primary RH ACM Hub
      include_role:
@@ -34,9 +24,9 @@
        managed_cluster_validate_certs: "{{managed_cluster_ocp_validate_certs}}"
        managed_cluster_name: "{{managed_cluster_name}}"
 
-   - name: Deploy a simple helloworld policy on on primary RH ACM Hub
+   - name: Deploy a simple helloworld policy and argo on on primary RH ACM Hub
      include_role:
-       name: acm_deploy_simple_policy
+       name: acm_deploy_simple_policy_and_argo
      vars:
        host: "{{primary_hub_ocp_host}}"
        api_key: "{{primary_hub_ocp_api_key}}"
@@ -44,22 +34,11 @@
        managed_cluster_name: "{{managed_cluster_name}}"
 
 
-   - name: Configure backup on S3 on primary RH ACM Hub
+   - name: Install secondary RH ACM
      include_role:
-       name: acm_backup_configure
-     vars:
-       host: "{{primary_hub_ocp_host}}"
-       api_key: "{{primary_hub_ocp_api_key}}"
-       validate_certs: "{{primary_hub_ocp_validate_certs}}"
-       aws_access_key: "{{aws_access_key}}"
-       aws_secret_key: "{{aws_secret_key}}"
-
-   - name: Configure restore from S3 to secondary RH ACM Hub
-     include_role:
-       name: acm_restore_configure
+       name: acm_install
      vars:
        host: "{{secondary_hub_ocp_host}}"
        api_key: "{{secondary_hub_ocp_api_key}}"
        validate_certs: "{{secondary_hub_ocp_validate_certs}}"
-       aws_access_key: "{{aws_access_key}}"
-       aws_secret_key: "{{aws_secret_key}}"
+       mch_enable_cluster_backup: "true"

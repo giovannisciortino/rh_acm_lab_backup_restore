@@ -53,3 +53,30 @@
   delay: 5
   register: result
   until: result is success
+
+- name: create ACM ArgoCD resources
+  kubernetes.core.k8s:
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+    state: present
+    template: templates/argocd_manifests.yml
+#  retries: 100
+#  delay: 5
+#  register: result
+#  until: result is success
+
+- name: "Tag managed cluster with additional label role=noprod-gitops-active"
+  kubernetes.core.k8s:
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+    api_version: "cluster.open-cluster-management.io/v1"
+    kind: ManagedCluster
+    namespace: "{{managed_cluster_name}}"
+    name: "{{managed_cluster_name}}"
+    state: present
+    definition: |
+      metadata:
+        labels:
+           role: "noprod-gitops-active"

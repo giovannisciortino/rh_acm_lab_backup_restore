@@ -1,7 +1,0 @@
-aws_bucket_region: "eu-central-1"
-aws_bucket_name: "mys3bucket324932849032840932840932840932840293"
-aws_bucket_prefix: "acm-"
-profile_name: "default"
-
-
-  

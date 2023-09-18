@@ -1,0 +1,18 @@
+- hosts: localhost
+  gather_facts: off
+  tasks:
+   - name: Configure backup on GCP S3 on secondary RH ACM Hub
+     include_role:
+       name: acm_backup_configure
+     vars:
+       host: "{{secondary_hub_ocp_host}}"
+       api_key: "{{secondary_hub_ocp_api_key}}"
+       validate_certs: "{{secondary_hub_ocp_validate_certs}}"
+
+   - name: Configure restore from GCP S3 to primary RH ACM Hub
+     include_role:
+       name: acm_restore_configure
+     vars:
+       host: "{{primary_hub_ocp_host}}"
+       api_key: "{{primary_hub_ocp_api_key}}"
+       validate_certs: "{{primary_hub_ocp_validate_certs}}"

@@ -5,7 +5,23 @@
     validate_certs: "{{validate_certs}}"
   register: api_status
 
-- name: create s3 cloud credential secret
+- name: Delete BackupSchedule resource if it exists on the passive ACM HUB
+  kubernetes.core.k8s:
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+    state: absent
+    api_version: v1beta1
+    kind: BackupSchedule
+    name: schedule-acm
+    namespace: open-cluster-management-backup    
+  retries: 100
+  delay: 5
+  register: result
+  until: result is success  
+  
+
+- name: create GCP S3 bucket cloud credential secret
   kubernetes.core.k8s:
     state: present
     definition: 
@@ -16,7 +32,7 @@
         name: "cloud-credentials"
         namespace: open-cluster-management-backup
       data:
-         cloud: "{{ lookup('template', './05_Secret_cloud-credentials.yaml' ) | b64encode }}"
+         cloud: "{{ acm_velero_service_account_credential | b64encode }}"
     host: "{{host}}"
     api_key: "{{api_key}}"
     validate_certs: "{{validate_certs}}"

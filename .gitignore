@@ -1,1 +1,4 @@
-install_lab_python_venv
+python_venv
+serviceaccount.json
+credentials-velero
+credentials-observability

@@ -1,0 +1,157 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-gitops
+spec:
+  finalizers:
+  - kubernetes
+
+---
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ns-channel-ocpgitops
+spec:
+  finalizers:
+  - kubernetes
+
+---
+
+apiVersion: app.k8s.io/v1beta1
+kind: Application
+metadata:
+  labels:
+    app: argocd
+  name: argocd
+  namespace: openshift-gitops
+spec:
+  componentKinds:
+  - group: apps.open-cluster-management.io
+    kind: Subscription
+  descriptor: {}
+  selector:
+    matchExpressions:
+    - key: app
+      operator: In
+      values:
+      - argocd
+
+---
+
+apiVersion: apps.open-cluster-management.io/v1
+kind: Channel
+metadata:
+  annotations:
+    apps.open-cluster-management.io/reconcile-rate: high
+  labels:
+    app: openshift-gitops
+  name: channel-openshift-gitops
+  namespace: ns-channel-ocpgitops
+spec:
+  pathname: https://github.com/giovannisciortino/acm-gitops.git
+  type: Git
+
+---
+
+apiVersion: apps.open-cluster-management.io/v1
+kind: PlacementRule
+metadata:
+  labels:
+    app: argocd
+  name: openshift-gitops-placementrule-noprod
+  namespace: openshift-gitops
+spec:
+  clusterSelector:
+    matchLabels:
+      role: noprod-gitops-active
+
+---
+
+apiVersion: apps.open-cluster-management.io/v1
+kind: Subscription
+metadata:
+  annotations:
+    apps.open-cluster-management.io/git-branch: main
+    apps.open-cluster-management.io/git-path: gitops-manifests
+    apps.open-cluster-management.io/reconcile-option: replace
+  labels:
+    app: argocd
+    app.kubernetes.io/part-of: argocd
+    apps.open-cluster-management.io/reconcile-rate: high
+  name: openshift-gitops-subscription-noprod
+  namespace: openshift-gitops
+spec:
+  channel: ns-channel-ocpgitops/channel-openshift-gitops
+  placement:
+    placementRef:
+      kind: PlacementRule
+      name: openshift-gitops-placementrule-noprod
+
+---
+
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: openshift-gitops-placementbinding-noprod
+  namespace: openshift-gitops
+placementRef:
+  apiGroup: apps.open-cluster-management.io
+  kind: PlacementRule
+  name: openshift-gitops-placementrule-noprod
+subjects:
+- apiGroup: policy.open-cluster-management.io
+  kind: Policy
+  name: openshift-gitops-installed-noprod
+
+---
+
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  annotations:
+    policy.open-cluster-management.io/categories: CM Configuration Management
+    policy.open-cluster-management.io/controls: CM-2 Baseline
+    policy.open-cluster-management.io/standards: NIST 800-53
+  name: openshift-gitops-installed-noprod
+  namespace: openshift-gitops
+spec:
+  disabled: false
+  policy-templates:
+  - objectDefinition:
+      apiVersion: policy.open-cluster-management.io/v1
+      kind: ConfigurationPolicy
+      metadata:
+        name: openshift-gitops-installed-noprod
+      spec:
+        namespaceSelector:
+          exclude:
+          - kube-*
+          include:
+          - default
+        object-templates:
+        - complianceType: musthave
+          objectDefinition:
+            apiVersion: operators.coreos.com/v1alpha1
+            kind: Subscription
+            metadata:
+              labels:
+                operators.coreos.com/openshift-gitops-operator.openshift-operators: ""
+              name: openshift-gitops-operator
+              namespace: openshift-operators
+            spec:
+              channel: stable
+              installPlanApproval: Automatic
+              name: openshift-gitops-operator
+              source: redhat-operators
+              sourceNamespace: openshift-marketplace
+        - complianceType: mustnothave
+          objectDefinition:
+            apiVersion: pipelines.openshift.io/v1alpha1
+            kind: GitopsService
+            metadata:
+              name: cluster
+            spec: {}
+        remediationAction: enforce
+        severity: medium
+  remediationAction: enforce

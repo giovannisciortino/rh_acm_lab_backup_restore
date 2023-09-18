@@ -6,5 +6,3 @@ metadata:
 spec:
   veleroSchedule: {{ velero_schedule }}
   veleroTtl: {{ velero_ttl }}
-  useManagedServiceAccount: true
-  managedServiceAccountTTL: 2h

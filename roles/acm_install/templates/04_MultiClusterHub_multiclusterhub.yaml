@@ -4,6 +4,8 @@ metadata:
   name: multiclusterhub
   namespace: open-cluster-management
 spec:
+  nodeSelector:
+    node-role.kubernetes.io/rhacm: ""
   availabilityConfig: High
   enableClusterBackup: false
   ingress:
@@ -32,6 +34,4 @@ spec:
       name: app-lifecycle
     - enabled: {{ mch_enable_cluster_backup }}
       name: cluster-backup
-    - enabled: {{ mch_enable_managedserviceaccount_preview }}
-      name: managedserviceaccount-preview
   separateCertificateManagement: false

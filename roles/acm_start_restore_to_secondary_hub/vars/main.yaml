@@ -1,3 +1,0 @@
-velero_schedule: "0 * * * *"
-velero_ttl: "120h"
-managed_service_account_ttl: "240h"
