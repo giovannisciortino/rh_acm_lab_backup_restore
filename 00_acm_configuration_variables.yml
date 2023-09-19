@@ -38,4 +38,7 @@ acm_observability_service_account_credential: |
   {
   }
 
+gitops_repository: "https://github.com/giovannisciortino/acm-gitops.git"
+gitops_username: "giovannisciortino"
+gitops_access_token: "github_"
 
