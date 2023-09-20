@@ -39,6 +39,18 @@ spec:
 
 ---
 
+kind: Secret
+apiVersion: v1
+metadata:
+  name: git-credentials
+  namespace: ns-channel-ocpgitops
+data:
+  accessToken: {{ gitops_access_token | b64encode }}
+  user: {{ gitops_username | b64encode }}
+type: Opaque
+
+---
+
 apiVersion: apps.open-cluster-management.io/v1
 kind: Channel
 metadata:
@@ -49,8 +61,10 @@ metadata:
   name: channel-openshift-gitops
   namespace: ns-channel-ocpgitops
 spec:
-  pathname: https://github.com/giovannisciortino/acm-gitops.git
+  pathname: "{{gitops_repository}}"
   type: Git
+  secretRef:
+    name: git-credentials
 
 ---
 
