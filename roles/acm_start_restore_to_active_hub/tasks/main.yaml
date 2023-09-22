@@ -50,6 +50,14 @@
   loop_control:
     loop_var: namespace
 
+- name: Create and add node-selector to ACM MultiClusterObservability Namespace with the correct node selector if not exists
+  kubernetes.core.k8s:
+    host: "{{active_hub_ocp_host}}"
+    api_key: "{{active_hub_ocp_api_key}}"
+    validate_certs: "{{active_hub_ocp_validate_certs}}"
+    state: present
+    template: templates/Namespace_open-cluster-management-observability.yaml
+
 
 - name: Wait that there are 3 restic pod in open-cluster-management-backup namespace
   kubernetes.core.k8s_info:
