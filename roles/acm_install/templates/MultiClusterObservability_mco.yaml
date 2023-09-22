@@ -17,5 +17,3 @@ spec:
     ruleStorageSize: 1Gi
     storageClass: gp2
     storeStorageSize: 60Gi
-  nodeSelector:
-    node-role.kubernetes.io/obser: ""

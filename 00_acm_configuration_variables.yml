@@ -6,6 +6,10 @@ secondary_hub_ocp_host:  https://OCP_CLUSTER2:6443/
 secondary_hub_ocp_api_key: 'sha256~'
 secondary_hub_ocp_validate_certs: False
 
+namespace_node_selector:
+   open-cluster-management: "node-role.kubernetes.io/rhacm="
+   open-cluster-management-observability: "node-role.kubernetes.io/obser="
+
 acm_velero_bucket_name: openenv-velero
 acm_velero_service_account_credential: |
   {

@@ -4,8 +4,6 @@ metadata:
   name: multiclusterhub
   namespace: open-cluster-management
 spec:
-  nodeSelector:
-    node-role.kubernetes.io/rhacm: ""
   availabilityConfig: High
   enableClusterBackup: false
   ingress:

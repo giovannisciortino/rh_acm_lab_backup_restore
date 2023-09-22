@@ -14,7 +14,7 @@
     validate_certs: "{{validate_certs}}"
   register: worker_nodes_list
 
-- name: Add label ode-role.kubernetes.io/rhacm and node-role.kubernetes.io/obser to worker nodes
+- name: Add label node-role.kubernetes.io/rhacm= and node-role.kubernetes.io/obser= to worker nodes
   kubernetes.core.k8s:
     state: patched
     kind: Node
@@ -36,7 +36,7 @@
     api_key: "{{api_key}}"
     validate_certs: "{{validate_certs}}"
     state: present
-    src: files/01_Namespace_open-cluster-management.yaml
+    template: templates/01_Namespace_open-cluster-management.yaml
 
 - name: Create Red Hat ACM OperatorGroup
   kubernetes.core.k8s:
@@ -72,7 +72,7 @@
     api_key: "{{api_key}}"
     validate_certs: "{{validate_certs}}"
     state: present
-    src: files/Namespace_open-cluster-management-observability.yaml
+    template: templates/Namespace_open-cluster-management-observability.yaml
   when: install_observability is defined and install_observability == True
 
 - name: Create Red Hat ACM MultiClusterObservability thanos secret resource

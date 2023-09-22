@@ -1,6 +1,6 @@
 - name: "Check if node-selector label is present"
   set_fact:
-    node_selector_is_present: "{{ query('kubernetes.core.k8s', host=ocp_host, api_key=ocp_api_key, validate_certs=ocp_validate_certs, kind='Namespace', resource_name=namespace) | json_query('[0].metadata.annotations.\"openshift.io/node-selector\"') == 'disabled_after_restore_on_another_cluster=true'  }}"
+    node_selector_disabled_acm_is_present: "{{ query('kubernetes.core.k8s', host=ocp_host, api_key=ocp_api_key, validate_certs=ocp_validate_certs, kind='Namespace', resource_name=namespace) | json_query('[0].metadata.annotations.\"openshift.io/node-selector\"') == 'disabled_after_restore_on_another_cluster=true'  }}"
 
 - name: "Add node selector to {{namespace}} namespace"
   kubernetes.core.k8s:
@@ -14,7 +14,7 @@
       metadata:
         annotations:
            openshift.io/node-selector: "disabled_after_restore_on_another_cluster=true"
-  when: state == "disabled" and not node_selector_is_present 
+  when: state == "disabled" and not node_selector_disabled_acm_is_present
   register: added_node_selector
 
 - name: "Remove node selector to {{namespace}} namespace"
@@ -28,8 +28,8 @@
     definition: |
       metadata:
         annotations:
-           openshift.io/node-selector: NULL
-  when: state == "enabled" and node_selector_is_present
+           openshift.io/node-selector: {{ namespace_node_selector[namespace] | default('NULL') }}
+  when: state == "enabled" and node_selector_disabled_acm_is_present
   register: removed_node_selector
 
 - name: "Delete all pod of namespaces {{namespace}}"
