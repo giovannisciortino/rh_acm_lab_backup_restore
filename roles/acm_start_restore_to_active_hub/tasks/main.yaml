@@ -104,25 +104,25 @@
   register: result
   until: result is success
 
-- name: Import a managed cluster on primary RH ACM Hub ( uncomment only on lab environment)
-  include_role:
-    name: acm_import_managedcluster
-  vars:
-    hub_host: "{{active_hub_ocp_host}}"
-    hub_api_key: "{{active_hub_ocp_api_key}}"
-    hub_validate_certs: "{{active_hub_ocp_validate_certs}}"
-    managed_cluster_host: "{{managed_cluster_ocp_host}}"
-    managed_cluster_api_key: "{{managed_cluster_ocp_api_key}}"
-    managed_cluster_validate_certs: "{{managed_cluster_ocp_validate_certs}}"
-    managed_cluster_name: "{{managed_cluster_name}}"
-  when: import_test_managed_cluster is defined and import_test_managed_cluster
+#- name: Import a managed cluster on primary RH ACM Hub ( uncomment only on lab environment)
+#  include_role:
+#    name: acm_import_managedcluster
+#  vars:
+#    hub_host: "{{active_hub_ocp_host}}"
+#    hub_api_key: "{{active_hub_ocp_api_key}}"
+#    hub_validate_certs: "{{active_hub_ocp_validate_certs}}"
+#    managed_cluster_host: "{{managed_cluster_ocp_host}}"
+#    managed_cluster_api_key: "{{managed_cluster_ocp_api_key}}"
+#    managed_cluster_validate_certs: "{{managed_cluster_ocp_validate_certs}}"
+#    managed_cluster_name: "{{managed_cluster_name}}"
+#  when: import_test_managed_cluster is defined and import_test_managed_cluster
 
 - name: Manual task 1
   debug: 
     msg: "Check the Restore resource on open-cluster-management-backup and velero pod logs (An error on restore-acm-acm-resources-generic-schedule restore is expected if it is empty)"
-- name: Manual task 2
-  debug: 
-    msg: "Import the managed clusters"
+#- name: Manual task 2
+#  debug: 
+#    msg: "Import the managed clusters"
 - name: Manual task 3
   debug: 
     msg: "Redeploy grafana-dev . 1) git clone -b release-2.8 https://github.com/stolostron/multicluster-observability-operator.git 2) cd multicluster-observability-operator/tools/ 3) ./setup-grafana-dev.sh --deploy "
