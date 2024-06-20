@@ -123,3 +123,16 @@
   when: install_observability is defined and install_observability == True
 
 
+- name: Wait until the resource MultiClusterHub has status Running
+  kubernetes.core.k8s_info:
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+    api_version: v1
+    kind: MultiClusterHub
+    namespace: open-cluster-management
+    name: multiclusterhub
+  retries: 100
+  delay: 5
+  register: mch_status
+  until: mch_status.resources.status.conditions.phase != "Running"
