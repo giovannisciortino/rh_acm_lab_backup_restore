@@ -59,37 +59,37 @@
     template: templates/Namespace_open-cluster-management-observability.yaml
 
 
-- name: Wait that there are 3 restic pod in open-cluster-management-backup namespace
-  kubernetes.core.k8s_info:
-    host: "{{active_hub_ocp_host}}"
-    api_key: "{{active_hub_ocp_api_key}}"
-    validate_certs: "{{active_hub_ocp_validate_certs}}"
-    api_version: v1
-    kind: Pod
-    namespace: open-cluster-management-backup
-  retries: 100
-  delay: 5
-  register: pod_open_cluster_management_backup_list
-  until: pod_open_cluster_management_backup_list.resources | map(attribute='metadata') | map(attribute='name') | select('match','^restic.*') | length >= 3
-
-- name: "Define restic Pod name list in the namespace open-cluster-management-backup"
-  set_fact: 
-    pod_restic_name_list: "{{pod_open_cluster_management_backup_list.resources | map(attribute='metadata') | map(attribute='name') | select('match','^restic.*') }}"
-
-- name: Wait that all restic pods in the namespace open-cluster-management-backup are in the state running
-  k8s_info:
-    host: "{{active_hub_ocp_host}}"
-    api_key: "{{active_hub_ocp_api_key}}"
-    validate_certs: "{{active_hub_ocp_validate_certs}}"
-    api_version: v1
-    kind: Pod
-    namespace: open-cluster-management-backup
-    name: "{{item}}"
-  loop: "{{pod_restic_name_list}}"
-  register: pod_restic_status
-  until: pod_restic_status.resources | map(attribute='status',default=[])| map(attribute='phase',default=[])| unique | length == 1 and pod_restic_status.resources | map(attribute='status',default=[])| map(attribute='phase',default=[])| unique | first == 'Running'
-  retries: 20
-  delay: 30
+#- name: Wait that there are 3 restic pod in open-cluster-management-backup namespace
+#  kubernetes.core.k8s_info:
+#    host: "{{active_hub_ocp_host}}"
+#    api_key: "{{active_hub_ocp_api_key}}"
+#    validate_certs: "{{active_hub_ocp_validate_certs}}"
+#    api_version: v1
+#    kind: Pod
+#    namespace: open-cluster-management-backup
+#  retries: 100
+#  delay: 5
+#  register: pod_open_cluster_management_backup_list
+#  until: pod_open_cluster_management_backup_list.resources | map(attribute='metadata') | map(attribute='name') | select('match','^restic.*') | length >= 3
+#
+#- name: "Define restic Pod name list in the namespace open-cluster-management-backup"
+#  set_fact: 
+#    pod_restic_name_list: "{{pod_open_cluster_management_backup_list.resources | map(attribute='metadata') | map(attribute='name') | select('match','^restic.*') }}"
+#
+#- name: Wait that all restic pods in the namespace open-cluster-management-backup are in the state running
+#  k8s_info:
+#    host: "{{active_hub_ocp_host}}"
+#    api_key: "{{active_hub_ocp_api_key}}"
+#    validate_certs: "{{active_hub_ocp_validate_certs}}"
+#    api_version: v1
+#    kind: Pod
+#    namespace: open-cluster-management-backup
+#    name: "{{item}}"
+#  loop: "{{pod_restic_name_list}}"
+#  register: pod_restic_status
+#  until: pod_restic_status.resources | map(attribute='status',default=[])| map(attribute='phase',default=[])| unique | length == 1 and pod_restic_status.resources | map(attribute='status',default=[])| map(attribute='phase',default=[])| unique | first == 'Running'
+#  retries: 20
+#  delay: 30
 
 
 - name: create ACM Restore resource
