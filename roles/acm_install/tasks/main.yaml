@@ -135,4 +135,4 @@
   retries: 100
   delay: 5
   register: mch_status
-  until: mch_status.resources.status.conditions.phase != "Running"
+  until: "{{ mch_status.resources.status.conditions.phase | default('') != 'Running'}}"
