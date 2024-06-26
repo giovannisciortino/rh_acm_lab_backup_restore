@@ -57,6 +57,7 @@
           - enabled: true
             name: managedserviceaccount-preview
     apply: yes
+  ignore_errors: true
 
 
 - name: create ACM DataProtectionApplication resource
