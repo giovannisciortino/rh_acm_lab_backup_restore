@@ -12,44 +12,6 @@
     validate_certs: "{{passive_hub_ocp_validate_certs}}"
   register: api_status
 
-- name: "Disable and stop pods of RHACM namespaces on passive ACM HUB {{passive_hub_ocp_host}}"
-  include_tasks: "enable_disable_pod_of_a_namespace.yaml"
-  loop:
-    - open-cluster-management-backup
-    - open-cluster-management-observability
-    - multicluster-engine
-    - open-cluster-management
-    - open-cluster-management-addon-observability
-    - open-cluster-management-agent
-    - open-cluster-management-agent-addon
-    - open-cluster-management-hub
-  vars:
-    state: "disabled"
-    ocp_host: "{{passive_hub_ocp_host}}"
-    ocp_api_key: "{{passive_hub_ocp_api_key}}"
-    ocp_validate_certs: "{{passive_hub_ocp_validate_certs}}"
-  loop_control:
-    loop_var: namespace
-
-- name: "Enable and start pods of RHACM namespaces on active ACM HUB {{active_hub_ocp_host}}"
-  include_tasks: "enable_disable_pod_of_a_namespace.yaml"
-  loop:
-    - open-cluster-management-backup
-    - open-cluster-management-observability
-    - multicluster-engine
-    - open-cluster-management
-    - open-cluster-management-addon-observability
-    - open-cluster-management-agent
-    - open-cluster-management-agent-addon
-    - open-cluster-management-hub
-  vars:
-    state: "enabled"
-    ocp_host: "{{active_hub_ocp_host}}"
-    ocp_api_key: "{{active_hub_ocp_api_key}}"
-    ocp_validate_certs: "{{active_hub_ocp_validate_certs}}"
-  loop_control:
-    loop_var: namespace
-
 - name: Create and add node-selector to ACM MultiClusterObservability Namespace with the correct node selector if not exists
   kubernetes.core.k8s:
     host: "{{active_hub_ocp_host}}"
