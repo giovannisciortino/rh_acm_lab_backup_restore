@@ -20,6 +20,24 @@
     state: present
     template: templates/Namespace_open-cluster-management-observability.yaml
 
+- name: Execute workaround before performing the restore
+  block:
+    - name: Pause MCE on ACM HUB becoming passive
+      ansible.builtin.include_tasks: pause_mce.yaml
+
+    - name: Stop the import-controller pods modifing the replicas value of the deployment on ACM HUB becoming passive
+      kubernetes.core.k8s:
+        host: "{{passive_hub_ocp_host}}"
+        api_key: "{{passive_hub_ocp_api_key}}"
+        validate_certs: "{{passive_hub_ocp_validate_certs}}"
+        kind: Deployment
+        namespace: "multicluster-engine"
+        name: "managedcluster-import-controller-v2"
+        state: present
+        definition: |
+          spec:
+            replicas: 0
+
 
 #- name: Wait that there are 3 restic pod in open-cluster-management-backup namespace
 #  kubernetes.core.k8s_info:
@@ -53,7 +71,6 @@
 #  retries: 20
 #  delay: 30
 
-
 - name: create ACM Restore resource
   kubernetes.core.k8s:
     host: "{{active_hub_ocp_host}}"
@@ -78,6 +95,14 @@
 #    managed_cluster_validate_certs: "{{managed_cluster_ocp_validate_certs}}"
 #    managed_cluster_name: "{{managed_cluster_name}}"
 #  when: import_test_managed_cluster is defined and import_test_managed_cluster
+
+- name: Execute workaround after performing the restore
+  block:
+  - name: Remove auto-import secrets from ACM HUB becoming passive
+    include_tasks: remove_auto-import_secrets.yaml
+ 
+  - name: Unpause MCE on ACM HUB becoming passive
+    ansible.builtin.include_tasks: unpause_mce.yaml
 
 - name: Manual task 1
   debug: 

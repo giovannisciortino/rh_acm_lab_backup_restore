@@ -1,0 +1,28 @@
+- name: Get MCE resource manifest
+  kubernetes.core.k8s_info:
+    host: "{{ passive_hub_ocp_host }}"
+    api_key: "{{ passive_hub_ocp_api_key }}"
+    validate_certs: "{{ passive_hub_ocp_validate_certs }}"
+    kind: MultiClusterEngine
+    name: "multiclusterengine"
+  register: mce_manifest
+
+- name: Remove fields non useful to apply again the resource manifest
+  ansible.builtin.set_fact:
+    clean_mce_manifest: "{{ mce_manifest.resources | ansible.utils.remove_keys(target=['status', 'kubectl.kubernetes.io/last-applied-configuration', 'creationTimestamp', 'generation', 'resourceVersion', 'uid']) }}"
+
+- name: Define the new manifest to add the annotation pause=false
+  ansible.builtin.set_fact:
+    clean_mce_manifest_with_annotation_pause_true: '{{ clean_mce_manifest | combine({"metadata": {"annotations": {"pause": "false"}}}) }}'
+
+- name: Apply the new manifest to add the annotation pause=true
+  kubernetes.core.k8s:
+    host: "{{ passive_hub_ocp_host }}"
+    api_key: "{{ passive_hub_ocp_api_key }}"
+    validate_certs: "{{ passive_hub_ocp_validate_certs }}"
+    state: present
+    kind: MultiClusterEngine
+    name: "multiclusterengine"
+    apply: yes
+    definition: |
+      {{ clean_mce_manifest_with_annotation_pause_true }}
