@@ -30,6 +30,9 @@ wait_first_backup_retries: 120
 wait_first_backup_delay: 30
 
 # VARIABLE NEEDED ONLY FOR ACM INSTALLATION
+acm_operator_channel: "release-2.8"
+acm_operator_z_release: "advanced-cluster-management.v2.8.6"
+
 
 import_test_managed_cluster: True
 managed_cluster_name: managed-cluster

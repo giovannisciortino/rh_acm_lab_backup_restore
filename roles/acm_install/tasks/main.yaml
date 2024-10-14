@@ -29,7 +29,6 @@
     validate_certs: "{{validate_certs}}"
   loop: "{{worker_nodes_list.resources | map(attribute='metadata') | map(attribute='name') }}"
 
-
 - name: Create Red Hat ACM Namespace
   kubernetes.core.k8s:
     host: "{{host}}"
@@ -52,7 +51,39 @@
     api_key: "{{api_key}}"
     validate_certs: "{{validate_certs}}"
     state: present
-    src: files/03_Subscription_advanced-cluster-management.yaml
+    template: templates/03_Subscription_advanced-cluster-management.yaml
+
+- name: Wait until the InstallPlan is created
+  kubernetes.core.k8s_info:
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+    api_version: v1alpha1
+    kind: InstallPlan
+    namespace: open-cluster-management
+  retries: 100
+  delay: 5
+  register: install_plan
+  until: "{{install_plan.resources | length >= 1 }}"
+
+
+- name: Define ACM InstallPlan name
+  ansible.builtin.set_fact:
+    acm_install_plan_name: "{{install_plan.resources[0].metadata.name}}"
+
+- name: Approve ACM InstallPlan name
+  kubernetes.core.k8s:
+    api_version: v1alpha1
+    kind: InstallPlan
+    name: "{{acm_install_plan_name}}"
+    definition:
+      spec:
+        approved: true
+    host: "{{host}}"
+    api_key: "{{api_key}}"
+    validate_certs: "{{validate_certs}}"
+    namespace: open-cluster-management
+  when: install_plan.resources[0].spec.clusterServiceVersionNames[0] == acm_operator_z_release
 
 - name: Create Red Hat ACM MultiClusterHub - Retry until ACM Operator is installed and kind MultiClusterHub is available
   kubernetes.core.k8s:

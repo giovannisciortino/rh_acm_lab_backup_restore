@@ -6,8 +6,9 @@ metadata:
   name: advanced-cluster-management
   namespace: open-cluster-management
 spec:
-  channel: release-2.9
-  installPlanApproval: Automatic
+  channel: "{{acm_operator_channel}}"
+  installPlanApproval: Manual
   name: advanced-cluster-management
   source: redhat-operators
   sourceNamespace: openshift-marketplace
+  startingCSV: "{{acm_operator_z_release}}"
