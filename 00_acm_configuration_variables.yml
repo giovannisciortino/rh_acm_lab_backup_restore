@@ -23,7 +23,8 @@ velero_schedule: "0 2 * * *"
 # velero_ttl = backup retention
 # Maximum value of velero_ttl 720h (source: https://access.redhat.com/documentation/it-it/red_hat_advanced_cluster_management_for_kubernetes/2.8/html-single/business_continuity/index#using-backup-restore)
 velero_ttl: "168h"
-managed_service_account_ttl: "300h"
+# managed_service_account_ttl = velero_ttl * 2
+managed_service_account_ttl: "336h"
 
 # 120 retries * 30 seconds = 1 hour
 wait_first_backup_retries: 120
