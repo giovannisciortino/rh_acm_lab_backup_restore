@@ -1,0 +1,15 @@
+- hosts: localhost
+  gather_facts: off
+  tasks:
+   - name: Import a managed cluster on primary RH ACM Hub
+     include_role:
+       name: acm_import_managedcluster
+     vars:
+       hub_host: "{{secondary_hub_ocp_host}}"
+       hub_api_key: "{{secondary_hub_ocp_api_key}}"
+       hub_validate_certs: "{{secondarygi_hub_ocp_validate_certs}}"
+       managed_cluster_host: "{{managed_cluster_ocp_host}}"
+       managed_cluster_api_key: "{{managed_cluster_ocp_api_key}}"
+       managed_cluster_validate_certs: "{{managed_cluster_ocp_validate_certs}}"
+       managed_cluster_name: "{{managed_cluster_name}}"
+
