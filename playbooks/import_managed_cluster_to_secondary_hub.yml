@@ -7,7 +7,7 @@
      vars:
        hub_host: "{{secondary_hub_ocp_host}}"
        hub_api_key: "{{secondary_hub_ocp_api_key}}"
-       hub_validate_certs: "{{secondarygi_hub_ocp_validate_certs}}"
+       hub_validate_certs: "{{secondary_hub_ocp_validate_certs}}"
        managed_cluster_host: "{{managed_cluster_ocp_host}}"
        managed_cluster_api_key: "{{managed_cluster_ocp_api_key}}"
        managed_cluster_validate_certs: "{{managed_cluster_ocp_validate_certs}}"
